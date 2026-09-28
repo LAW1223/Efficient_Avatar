@@ -668,8 +668,8 @@
               <p class="dmd-intro" data-text="distillation.intro"></p>
             </div>
             <div class="dmd-time" id="dmd-time">
-              <p class="dmd-time-value"><small>≈</small><span id="dmd-time-percent"></span></p>
-              <p class="dmd-time-label" data-text="distillation.timeLabel"></p>
+              <p class="dmd-time-value"><span id="dmd-step-ratio"></span></p>
+              <p class="dmd-time-label" data-text="distillation.ratioLabel"></p>
               <p class="dmd-time-steps" id="dmd-time-steps"></p>
             </div>
           </figcaption>
@@ -811,7 +811,7 @@
     </div>
   </footer>
 
-  <script src="data.js?v=6"></script>
+  <script src="data.js?v=7"></script>
   <script>
   (function () {
     "use strict";
@@ -1037,7 +1037,7 @@
 
     if (A) {
       var m = document.getElementById("metrics");
-      m.appendChild(h("div", { class: "metric" }, [
+      if (P.steps) m.appendChild(h("div", { class: "metric" }, [
         h("div", { class: "v" }, [countEl(P.steps.before, 0), h("small", { text: " → " }), countEl(P.steps.after, 0)]),
         h("div", { class: "l", text: P.steps.note })]));
       m.appendChild(h("div", { class: "metric" }, [
@@ -1139,19 +1139,31 @@
           track.style.setProperty("--count", count);
           for (var step = 0; step < count; step++) track.appendChild(h("i", { text: key === "after" ? step + 1 : "" }));
         });
-        document.getElementById("dmd-time-percent").textContent = Math.round(dmdSteps.after / dmdSteps.before * 100) + "%";
+        // Step reduction only (a configuration fact). Wall-clock time also depends on per-step cost
+        // and fixed overhead, so no time saving is shown until it has been measured.
+        var ratio = dmdSteps.before / dmdSteps.after;
+        document.getElementById("dmd-step-ratio").textContent = (Number.isInteger(ratio) ? ratio : Math.floor(ratio * 10) / 10) + "×";
         document.getElementById("dmd-time-steps").textContent = dmdSteps.before + " → " + dmdSteps.after + " " + distillation.shortStepUnit;
       } else {
         document.getElementById("dmd-time").hidden = true;
         dmd.querySelector(".dmd-head").style.gridTemplateColumns = "1fr";
         dmd.querySelector(".dmd-inference").hidden = true;
+        // Without step counts the inference view is empty: drop its tab (and the tab bar, since one tab is left).
+        document.getElementById("dmd-inference-tab").hidden = true;
+        dmd.querySelector(".dmd-tabs").hidden = true;
+        selectDmdTab(document.getElementById("dmd-training-tab"));
       }
       if (D.hero.poster) {
         var dmdOutput = document.getElementById("dmd-output");
         dmdOutput.insertBefore(h("img", { src: bust(D.hero.poster), alt: distillation.outputAlt, loading: "lazy", width: "132", height: "132" }), dmdOutput.firstChild);
       }
       document.getElementById("dmd-reference").href = distillation.referenceUrl;
-    } else { dmd.hidden = true; }
+    } else {
+      dmd.hidden = true;
+      // The hero button points at the explainer; without it, fall back to the technology section.
+      var dmdCta = document.querySelector('.hero-cta a[href="#dmd"]');
+      if (dmdCta) { dmdCta.href = "#technology"; dmdCta.textContent = "Explore the technology"; }
+    }
 
     /* ---------- Capabilities ---------- */
     var caps = document.getElementById("caps");
@@ -1162,7 +1174,7 @@
         var v = makeVideo(f, c.video, c.poster, true); v.setAttribute("aria-label", c.title + " example"); watch(v);
       } else if (A) {
         card.appendChild(h("div", { class: "cap-panel" }, [
-          h("div", null, [h("div", { class: "big", text: P.steps.before + " → " + P.steps.after }), h("div", { class: "big-label", text: "denoising steps" })]),
+          P.steps ? h("div", null, [h("div", { class: "big", text: P.steps.before + " → " + P.steps.after }), h("div", { class: "big-label", text: "denoising steps" })]) : null,
           h("div", null, [h("div", { class: "big", text: ratioText }), h("div", { class: "big-label", text: "faster attention" })])]));
       } else {
         card.appendChild(h("div", { class: "cap-panel", "aria-hidden": "true" }, [

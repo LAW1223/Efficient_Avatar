@@ -15,7 +15,7 @@ window.SITE_DATA = {
     title: "Efficient Half-Body Talking Avatar Generation",
     tagline: "Expressive, speech-driven half-body avatars, engineered for efficient inference.",
     description:
-      "A research collaboration between HKUST and ASTRI. DMD distillation cuts generation from 40 denoising steps to 4, bringing inference time to roughly 10% of the original. 4-bit attention makes each step faster.",
+      "A research collaboration between HKUST and ASTRI. DMD distillation cuts generation from 40 denoising steps to 4, and 4-bit attention makes each step faster.",
     whyNow:
       "Talking-avatar generation has advanced rapidly with modern generative video models, but these models are often slow and memory-intensive to run. This project focuses on the efficiency side: making generation lighter so it is practical to deploy.",
   },
@@ -91,9 +91,9 @@ window.SITE_DATA = {
   distillation: {
     eyebrow: "Distribution Matching Distillation",
     title: "How DMD works.",
-    cta: "How DMD works",
+    cta: "How it gets faster",
     intro: "DMD trains a few-step student to match the video distribution learned by a pretrained diffusion teacher. Here is the idea behind the training loop.",
-    timeLabel: "of the original inference time",
+    ratioLabel: "fewer denoising steps per video",
     shortStepUnit: "steps",
     tabsLabel: "Explore DMD",
     trainingTab: "During training",
@@ -119,7 +119,7 @@ window.SITE_DATA = {
     outputAlt: "Example generated talking avatar",
     schematic: "Schematic · each block is one denoising step",
     inferenceCaption: "At inference, the student generates the video on its own. The teacher and learned score model are only used during training.",
-    takeaway: "Approximate inference time, assuming comparable cost per denoising step.",
+    takeaway: "Step count only. End-to-end generation time also depends on per-step cost and fixed overhead, and has not been measured yet.",
     referenceLabel: "DMD paper",
     referenceUrl: "https://arxiv.org/abs/2311.18828",
   },
