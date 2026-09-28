@@ -272,6 +272,115 @@
     .explain { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 5vw, 72px); }
     .explain p { color: var(--text-2); margin: 0; max-width: 52ch; }
 
+    /* DMD: a responsive, explorable training diagram. */
+    .dmd {
+      position: relative; isolation: isolate; margin: 48px 0 0; overflow: hidden; scroll-margin-top: 84px;
+      border: 1px solid rgba(152, 160, 255, .22); border-radius: 22px;
+      background: radial-gradient(ellipse at 0 0, rgba(139, 92, 246, .13), transparent 55%),
+        radial-gradient(ellipse at 100% 100%, rgba(45, 212, 232, .07), transparent 55%), #0a0e21;
+    }
+    .dmd::before { content: ""; position: absolute; top: 0; left: 8%; right: 8%; height: 1px; background: linear-gradient(90deg, transparent, #a18af8, var(--cyan), transparent); }
+    .dmd-head { display: grid; grid-template-columns: minmax(0, 1fr) 180px; gap: 24px 40px; align-items: center; padding: clamp(24px, 3.2vw, 40px) clamp(20px, 3.2vw, 40px) 24px; }
+    .dmd-head > :only-child { grid-column: 1 / -1; }
+    .dmd-time { border-left: 1px solid var(--line); padding-left: 28px; }
+    .dmd-time[hidden] { display: none; }
+    .dmd-time-value { font-size: 3rem; font-weight: 600; letter-spacing: -.06em; line-height: 1.1; margin: 0 0 6px; color: #86e4ed; }
+    .dmd-time-value small { font-size: .5em; vertical-align: .18em; margin-right: 3px; }
+    .dmd-time-label { margin: 0; font-size: 12px; color: #c4c8df; line-height: 1.45; }
+    .dmd-time-steps { margin: 10px 0 0; font-size: 11px; color: var(--text-2); }
+    .dmd-eyebrow { margin: 0 0 10px; color: #b7a4fa; font-size: 11px; font-weight: 600; letter-spacing: .13em; text-transform: uppercase; }
+    .dmd h3 { font-size: clamp(1.65rem, 2.8vw, 2.25rem); letter-spacing: -.035em; margin-bottom: 12px; }
+    .dmd-intro { color: var(--text-2); font-size: 15px; max-width: 72ch; margin: 0; }
+    .dmd-toolbar { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 14px; padding: 0 clamp(20px, 3.2vw, 40px) 24px; }
+    .dmd-tabs { display: inline-flex; padding: 4px; gap: 4px; border: 1px solid var(--line); border-radius: 999px; background: rgba(3, 5, 14, .5); }
+    .dmd-tabs button { padding: 8px 16px; font-size: 13px; font-weight: 500; line-height: 1.4; cursor: pointer; border: 1px solid transparent; border-radius: 999px; background: transparent; color: var(--text-2); transition: background .2s, color .2s; }
+    .dmd-tabs button:hover { color: var(--text); }
+    .dmd-tabs button[aria-selected="true"] { color: var(--text); background: #26223f; border-color: rgba(183, 164, 250, .25); box-shadow: 0 2px 8px rgba(0, 0, 0, .2); }
+    .dmd-context { color: var(--text-2); font-size: 12px; margin: 0; }
+    .dmd-panel { border-top: 1px solid var(--line); padding: 28px clamp(20px, 3.2vw, 40px) 24px; }
+    .dmd-panel[hidden] { display: none; }
+    .dmd-flow { display: grid; grid-template-columns: 1fr 38px .8fr 38px 1.18fr 38px 1fr; align-items: stretch; }
+    .dmd-stage { min-width: 0; }
+    .dmd-stage-label { color: var(--text-2); font-size: 11px; font-weight: 500; letter-spacing: .025em; margin: 0 0 16px; }
+    .dmd-node { height: 216px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 10px; padding: 16px 12px; border: 1px solid var(--line); border-radius: 14px; background: rgba(9, 13, 31, .7); }
+    .dmd-node strong, .dmd-score strong { font-size: 14px; font-weight: 500; line-height: 1.3; }
+    .dmd-node p, .dmd-score p { color: var(--text-2); font-size: 12px; line-height: 1.5; margin: 0; }
+    .dmd-student { border-color: rgba(139, 92, 246, .4); background: linear-gradient(145deg, rgba(139, 92, 246, .14), rgba(9, 13, 31, .7)); }
+    .dmd-badge { display: inline-flex; align-items: center; gap: 5px; width: fit-content; font-size: 10px; line-height: 1.3; padding: 3px 7px; border: 1px solid rgba(183, 164, 250, .25); border-radius: 5px; color: #c9b6ff; }
+    .dmd-badge::before { content: ""; width: 4px; height: 4px; border-radius: 50%; background: currentColor; }
+    .dmd-glyph { width: 64px; height: 55px; color: #b7a4fa; }
+    .dmd-noise { width: 58px; height: 58px; display: grid; place-items: center; position: relative; isolation: isolate; overflow: hidden; border: 1px solid rgba(190, 200, 255, .25); border-radius: 11px; font-size: 23px; font-style: italic; color: #d5d9ee; background: #20243d; }
+    .dmd-noise::before { content: ""; position: absolute; inset: 0; z-index: -1; opacity: .25; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='90' height='90'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.7' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' opacity='.9' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    .dmd-scores { display: grid; height: 216px; grid-template-rows: 1fr 1fr; gap: 12px; }
+    .dmd-score { display: flex; flex-direction: column; justify-content: center; align-items: flex-start; gap: 5px; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(45, 212, 232, .28); background: rgba(45, 212, 232, .045); }
+    .dmd-teacher .dmd-badge { color: #78dce7; border-color: rgba(45, 212, 232, .25); }
+    .dmd-learned { border-color: rgba(183, 164, 250, .25); background: rgba(139, 92, 246, .055); }
+    .dmd-connector { width: 100%; height: 216px; align-self: end; fill: none; stroke: #657196; stroke-width: 1.2; overflow: visible; }
+    .dmd-connector .teacher-path { stroke: #4eaab9; }
+    .dmd-connector .learned-path { stroke: #9880d3; }
+    .dmd-signal { border-color: rgba(226, 180, 94, .3); background: linear-gradient(145deg, rgba(226, 180, 94, .07), transparent); }
+    .dmd-delta { font-size: 22px; color: var(--gold); font-weight: 500; letter-spacing: -.035em; }
+    .dmd-loop { height: 48px; position: relative; margin: 0 calc((100% - 114px) / 7.96); border: 1px solid rgba(183, 164, 250, .5); border-top: 0; border-radius: 0 0 12px 12px; }
+    .dmd-loop::before { content: ""; position: absolute; left: -4px; top: 1px; width: 7px; height: 7px; border-top: 1px solid #b7a4fa; border-left: 1px solid #b7a4fa; transform: rotate(45deg); }
+    .dmd-loop span { position: absolute; bottom: -10px; left: 50%; transform: translateX(-50%); white-space: nowrap; padding: 0 12px; font-size: 11px; color: #c9b6ff; background: #0d1025; }
+    .dmd-caption { margin: 30px 0 0; color: var(--text-2); font-size: 13px; line-height: 1.7; max-width: 100ch; }
+    .dmd-inference { display: grid; grid-template-columns: minmax(0, 1fr) 148px; gap: 30px; align-items: center; min-height: 296px; }
+    .dmd-inference[hidden] { display: none; }
+    .dmd-input { display: flex; align-items: center; gap: 9px; font-size: 12px; color: var(--text-2); margin: 0 0 24px; }
+    .dmd-input::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px rgba(45, 212, 232, .4); }
+    .dmd-track + .dmd-track { margin-top: 22px; }
+    .dmd-track-head { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 12px; margin-bottom: 10px; font-size: 13px; }
+    .dmd-track-head strong { font-weight: 500; }
+    .dmd-track-head span { color: var(--text-2); font-size: 12px; }
+    .dmd-steps { display: grid; grid-template-columns: repeat(var(--count), minmax(0, 1fr)); gap: 4px; }
+    .dmd-steps i { display: grid; place-items: center; height: 36px; font-size: 12px; font-style: normal; border-radius: 3px; background: rgba(152, 128, 211, .18); border: 1px solid rgba(152, 128, 211, .2); }
+    .dmd-track-student .dmd-steps { gap: 10px; }
+    .dmd-track-student .dmd-steps i { color: #9aedf4; background: linear-gradient(120deg, rgba(61, 107, 255, .18), rgba(45, 212, 232, .15)); border-color: rgba(45, 212, 232, .4); border-radius: 6px; }
+    .dmd-output { position: relative; padding: 8px; border: 1px solid rgba(45, 212, 232, .3); border-radius: 12px; background: rgba(45, 212, 232, .035); }
+    .dmd-output::before { content: "→"; position: absolute; left: -24px; top: calc(50% - 14px); color: var(--cyan); }
+    .dmd-output img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 7px; }
+    .dmd-output p { text-align: center; font-size: 12px; margin: 9px 0 2px; color: var(--text-2); }
+    .dmd-schematic { font-size: 11px; color: var(--text-2); margin: 16px 0 0; }
+    .dmd-foot { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 17px clamp(20px, 3.2vw, 40px); border-top: 1px solid var(--line); font-size: 12px; }
+    .dmd-foot p { margin: 0; color: #c4c8df; }
+    .dmd-foot a { color: #b7a4fa; white-space: nowrap; text-underline-offset: 4px; }
+    @media (max-width: 1000px) and (min-width: 761px) {
+      .dmd-flow { grid-template-columns: 1fr 24px .8fr 24px 1.18fr 24px 1fr; }
+      .dmd-node { padding: 12px 8px; }
+      .dmd-score { padding: 10px; }
+      .dmd-node strong, .dmd-score strong { font-size: 12px; }
+      .dmd-node p, .dmd-score p { font-size: 11px; }
+      .dmd-stage-label { font-size: 10px; }
+      .dmd-loop { margin: 0 calc((100% - 72px) / 7.96); }
+    }
+    @media (max-width: 760px) {
+      .dmd-head { grid-template-columns: 1fr; }
+      .dmd-time { padding: 16px 0 0; border-left: 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: auto 1fr; gap: 0 16px; align-items: center; }
+      .dmd-time-value { grid-row: 1 / 3; margin: 0; }
+      .dmd-time-steps { margin-top: 3px; }
+      .dmd-flow { grid-template-columns: 1fr; }
+      .dmd-stage-label { margin-bottom: 8px; }
+      .dmd-node { height: auto; min-height: 116px; display: grid; grid-template-columns: 58px minmax(0, 1fr); gap: 5px 16px; padding: 16px; text-align: left; justify-items: start; }
+      .dmd-glyph, .dmd-noise, .dmd-delta { grid-column: 1; grid-row: 1 / 4; align-self: center; }
+      .dmd-node strong, .dmd-node p, .dmd-node .dmd-badge { grid-column: 2; }
+      .dmd-delta { font-size: 17px; }
+      .dmd-connector { width: 26px; height: 32px; justify-self: center; margin: 4px 0 8px; }
+      .dmd-connector .desktop-path { display: none; }
+      .dmd-connector .mobile-path { display: block; }
+      .dmd-scores { height: auto; grid-template-columns: 1fr 1fr; grid-template-rows: auto; gap: 10px; }
+      .dmd-score { padding: 14px 12px; min-height: 125px; }
+      .dmd-loop { height: auto; margin: 14px 0 0; border: 0; text-align: center; }
+      .dmd-loop::before { content: "↺"; position: static; display: inline; border: 0; color: #b7a4fa; font-size: 16px; }
+      .dmd-loop span { position: static; transform: none; white-space: normal; background: none; padding: 0 8px; }
+      .dmd-caption { margin-top: 22px; }
+      .dmd-inference { grid-template-columns: minmax(0, 1fr); gap: 26px; }
+      .dmd-output { justify-self: center; width: 132px; }
+      .dmd-output::before { content: "↓"; left: calc(50% - 5px); top: -29px; }
+      .dmd-steps { gap: 2px; }
+      .dmd-foot { align-items: flex-start; }
+    }
+    @media (min-width: 761px) { .dmd-connector .mobile-path { display: none; } }
+
     /* Applications */
     .apps { display: grid; grid-template-columns: 1fr 1fr; gap: 0 clamp(24px, 5vw, 72px); }
     .apps div { border-top: 1px solid var(--line); padding: 24px 0 32px; }
@@ -455,7 +564,7 @@
         <div class="hero-cta">
           <div class="btns">
             <a class="btn btn-primary" href="#demo">Watch demo</a>
-            <a class="btn btn-ghost" href="#technology">Explore the technology</a>
+            <a class="btn btn-ghost" href="#dmd" data-text="distillation.cta">How DMD works</a>
           </div>
         </div>
       </div>
@@ -551,6 +660,119 @@
             <p>Attention is one of the most expensive operations in video generation. We compute it in 4-bit floating point (NVFP4), using rotation and calibration to keep rounding errors small, so the output stays close to 16-bit attention.</p>
           </div>
         </div>
+        <figure class="dmd" id="dmd" aria-labelledby="dmd-title">
+          <figcaption class="dmd-head">
+            <div>
+              <p class="dmd-eyebrow" data-text="distillation.eyebrow"></p>
+              <h3 id="dmd-title" data-text="distillation.title"></h3>
+              <p class="dmd-intro" data-text="distillation.intro"></p>
+            </div>
+            <div class="dmd-time" id="dmd-time">
+              <p class="dmd-time-value"><small>≈</small><span id="dmd-time-percent"></span></p>
+              <p class="dmd-time-label" data-text="distillation.timeLabel"></p>
+              <p class="dmd-time-steps" id="dmd-time-steps"></p>
+            </div>
+          </figcaption>
+          <div class="dmd-toolbar">
+            <div class="dmd-tabs" role="tablist" aria-labelledby="dmd-tabs-label">
+              <span class="visually-hidden" id="dmd-tabs-label" data-text="distillation.tabsLabel"></span>
+              <button type="button" role="tab" id="dmd-training-tab" aria-controls="dmd-training" aria-selected="true" data-text="distillation.trainingTab"></button>
+              <button type="button" role="tab" id="dmd-inference-tab" aria-controls="dmd-inference" aria-selected="false" tabindex="-1" data-text="distillation.inferenceTab"></button>
+            </div>
+            <p class="dmd-context" data-text="distillation.conditioning"></p>
+          </div>
+          <div class="dmd-panel" id="dmd-training" role="tabpanel" aria-labelledby="dmd-training-tab" tabindex="0">
+            <div class="dmd-flow" role="group" aria-labelledby="dmd-training-label" aria-describedby="dmd-training-caption">
+              <span class="visually-hidden" id="dmd-training-label" data-text="distillation.trainingLabel"></span>
+              <div class="dmd-stage">
+                <p class="dmd-stage-label" data-text="distillation.student.label"></p>
+                <div class="dmd-node dmd-student">
+                  <svg class="dmd-glyph" viewBox="0 0 64 55" fill="none" aria-hidden="true">
+                    <path d="m32 4 26 13-26 13L6 17 32 4Z" fill="currentColor" fill-opacity=".14" stroke="currentColor"/>
+                    <path d="m6 28 26 13 26-13M6 39l26 13 26-13" stroke="currentColor" stroke-opacity=".65"/>
+                    <path d="M32 30v22M6 17v22m52-22v22" stroke="currentColor" stroke-opacity=".25"/>
+                    <circle cx="32" cy="17" r="3" fill="currentColor"/>
+                  </svg>
+                  <strong data-text="distillation.student.title"></strong>
+                  <p data-text="distillation.student.text"></p>
+                  <span class="dmd-badge" data-text="distillation.student.badge"></span>
+                </div>
+              </div>
+              <svg class="dmd-connector" viewBox="0 0 38 216" preserveAspectRatio="none" aria-hidden="true">
+                <path class="desktop-path" d="M0 108h37m-5-4 5 4-5 4"/>
+                <path class="mobile-path" d="M19 10v190m-7-45 7 45 7-45"/>
+              </svg>
+              <div class="dmd-stage">
+                <p class="dmd-stage-label" data-text="distillation.noise.label"></p>
+                <div class="dmd-node">
+                  <div class="dmd-noise" aria-hidden="true" data-text="distillation.noise.symbol"></div>
+                  <strong data-text="distillation.noise.title"></strong>
+                  <p data-text="distillation.noise.text"></p>
+                </div>
+              </div>
+              <svg class="dmd-connector" viewBox="0 0 38 216" preserveAspectRatio="none" aria-hidden="true">
+                <path class="desktop-path" d="M0 108h12"/>
+                <path class="desktop-path teacher-path" d="M12 108V51h25m-5-4 5 4-5 4"/>
+                <path class="desktop-path learned-path" d="M12 108v57h25m-5-4 5 4-5 4"/>
+                <path class="mobile-path" d="M19 10v190m-7-45 7 45 7-45"/>
+              </svg>
+              <div class="dmd-stage">
+                <p class="dmd-stage-label" data-text="distillation.scores.label"></p>
+                <div class="dmd-scores">
+                  <div class="dmd-score dmd-teacher">
+                    <span class="dmd-badge" data-text="distillation.scores.teacherBadge"></span>
+                    <strong data-text="distillation.scores.teacher"></strong>
+                    <p data-text="distillation.scores.teacherText"></p>
+                  </div>
+                  <div class="dmd-score dmd-learned">
+                    <span class="dmd-badge" data-text="distillation.scores.learnedBadge"></span>
+                    <strong data-text="distillation.scores.learned"></strong>
+                    <p data-text="distillation.scores.learnedText"></p>
+                  </div>
+                </div>
+              </div>
+              <svg class="dmd-connector" viewBox="0 0 38 216" preserveAspectRatio="none" aria-hidden="true">
+                <path class="desktop-path teacher-path" d="M0 51h25v57"/>
+                <path class="desktop-path learned-path" d="M0 165h25v-57"/>
+                <path class="desktop-path" d="M25 108h12m-5-4 5 4-5 4"/>
+                <path class="mobile-path" d="M19 10v190m-7-45 7 45 7-45"/>
+              </svg>
+              <div class="dmd-stage">
+                <p class="dmd-stage-label" data-text="distillation.signal.label"></p>
+                <div class="dmd-node dmd-signal">
+                  <div class="dmd-delta" aria-hidden="true" data-text="distillation.signal.symbol"></div>
+                  <strong data-text="distillation.signal.title"></strong>
+                  <p data-text="distillation.signal.text"></p>
+                </div>
+              </div>
+            </div>
+            <div class="dmd-loop"><span data-text="distillation.feedback"></span></div>
+            <p class="dmd-caption" id="dmd-training-caption" data-text="distillation.trainingCaption"></p>
+          </div>
+          <div class="dmd-panel" id="dmd-inference" role="tabpanel" aria-labelledby="dmd-inference-tab" tabindex="0" hidden>
+            <div class="dmd-inference" role="group" aria-labelledby="dmd-inference-label" aria-describedby="dmd-inference-caption">
+              <span class="visually-hidden" id="dmd-inference-label" data-text="distillation.inferenceLabel"></span>
+              <div>
+                <p class="dmd-input" data-text="distillation.inferenceInput"></p>
+                <div class="dmd-track">
+                  <div class="dmd-track-head"><strong data-text="distillation.original"></strong><span id="dmd-before-count"></span></div>
+                  <div class="dmd-steps" id="dmd-before-steps" aria-hidden="true"></div>
+                </div>
+                <div class="dmd-track dmd-track-student">
+                  <div class="dmd-track-head"><strong data-text="distillation.distilled"></strong><span id="dmd-after-count"></span></div>
+                  <div class="dmd-steps" id="dmd-after-steps" aria-hidden="true"></div>
+                </div>
+                <p class="dmd-schematic" data-text="distillation.schematic"></p>
+              </div>
+              <div class="dmd-output" id="dmd-output"><p data-text="distillation.output"></p></div>
+            </div>
+            <p class="dmd-caption" id="dmd-inference-caption" data-text="distillation.inferenceCaption"></p>
+          </div>
+          <div class="dmd-foot">
+            <p data-text="distillation.takeaway"></p>
+            <a id="dmd-reference"><span data-text="distillation.referenceLabel"></span> <span aria-hidden="true">↗</span></a>
+          </div>
+        </figure>
       </div>
     </section>
 
@@ -589,7 +811,7 @@
     </div>
   </footer>
 
-  <script src="data.js?v=4"></script>
+  <script src="data.js?v=6"></script>
   <script>
   (function () {
     "use strict";
@@ -883,6 +1105,53 @@
         dl.appendChild(h("div", null, [h("dt", { text: it[0] }), h("dd", { text: it[1] })]));
       });
     } else { hideSection("performance"); }
+
+    /* ---------- DMD explainer ---------- */
+    var dmd = document.getElementById("dmd"), distillation = D.distillation;
+    if (distillation) {
+      var dmdTabs = Array.from(dmd.querySelectorAll('[role="tab"]'));
+      function selectDmdTab(tab) {
+        dmdTabs.forEach(function (button) {
+          var selected = button === tab;
+          button.setAttribute("aria-selected", String(selected));
+          button.tabIndex = selected ? 0 : -1;
+          document.getElementById(button.getAttribute("aria-controls")).hidden = !selected;
+        });
+      }
+      dmdTabs.forEach(function (tab, i) {
+        tab.addEventListener("click", function () { selectDmdTab(tab); });
+        tab.addEventListener("keydown", function (event) {
+          var next;
+          if (event.key === "ArrowRight") next = (i + 1) % dmdTabs.length;
+          else if (event.key === "ArrowLeft") next = (i + dmdTabs.length - 1) % dmdTabs.length;
+          else if (event.key === "Home") next = 0;
+          else if (event.key === "End") next = dmdTabs.length - 1;
+          else return;
+          event.preventDefault(); selectDmdTab(dmdTabs[next]); dmdTabs[next].focus();
+        });
+      });
+      var dmdSteps = P && P.steps;
+      var hasDmdSteps = dmdSteps && ["before", "after"].every(function (key) { return Number.isInteger(dmdSteps[key]) && dmdSteps[key] > 0; });
+      if (hasDmdSteps) {
+        ["before", "after"].forEach(function (key) {
+          var count = dmdSteps[key], track = document.getElementById("dmd-" + key + "-steps");
+          document.getElementById("dmd-" + key + "-count").textContent = count + " " + distillation.stepUnit;
+          track.style.setProperty("--count", count);
+          for (var step = 0; step < count; step++) track.appendChild(h("i", { text: key === "after" ? step + 1 : "" }));
+        });
+        document.getElementById("dmd-time-percent").textContent = Math.round(dmdSteps.after / dmdSteps.before * 100) + "%";
+        document.getElementById("dmd-time-steps").textContent = dmdSteps.before + " → " + dmdSteps.after + " " + distillation.shortStepUnit;
+      } else {
+        document.getElementById("dmd-time").hidden = true;
+        dmd.querySelector(".dmd-head").style.gridTemplateColumns = "1fr";
+        dmd.querySelector(".dmd-inference").hidden = true;
+      }
+      if (D.hero.poster) {
+        var dmdOutput = document.getElementById("dmd-output");
+        dmdOutput.insertBefore(h("img", { src: bust(D.hero.poster), alt: distillation.outputAlt, loading: "lazy", width: "132", height: "132" }), dmdOutput.firstChild);
+      }
+      document.getElementById("dmd-reference").href = distillation.referenceUrl;
+    } else { dmd.hidden = true; }
 
     /* ---------- Capabilities ---------- */
     var caps = document.getElementById("caps");
