@@ -21,6 +21,10 @@ All text, videos, benchmark numbers and team details are in `data.js`.
   until hardware, baseline definition, required settings and the Baseline and headline rows are all filled.
   Speed-up and memory reduction are calculated from the table.
 - **Team / contact:** edit `team` and `contact.email`. Empty fields are hidden.
+- **DMD diagram:** edit `distillation` for its explanation and labels. The training / inference
+  views live in the Technology section; the **How DMD works** button on the first screen jumps to them.
+  Step counts and the approximate inference-time
+  percentage are calculated from `performance.steps`; the time estimate assumes comparable cost per step.
 
 ## Video guidelines
 - MP4 (H.264), 720p, `+faststart`; hero under 15 MB, demos under 10 MB each.
