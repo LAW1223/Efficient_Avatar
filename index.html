@@ -589,7 +589,7 @@
     </div>
   </footer>
 
-  <script src="data.js"></script>
+  <script src="data.js?v=4"></script>
   <script>
   (function () {
     "use strict";
@@ -635,10 +635,14 @@
       frame.appendChild(h("div", { class: "missing" }, [h("strong", { text: "Video not added yet" }), src || ""]));
       frame.querySelectorAll(".frame-ctl").forEach(function (b) { b.hidden = true; });
     }
+    // Append the asset version so browsers fetch replaced files instead of stale cached copies.
+    function bust(url) { return D.assetVersion ? url + "?v=" + D.assetVersion : url; }
     function makeVideo(frame, src, poster, lazy) {
       var v = h("video", { playsinline: "", poster: poster || null, preload: lazy ? "none" : "metadata" });
       v.muted = true; v.loop = true; v.playsInline = true;
       v.addEventListener("error", function () { showMissing(frame, src); });
+      src = bust(src); poster = poster && bust(poster);
+      if (poster) v.poster = poster;
       if (!lazy) v.src = src; else v.dataset.src = src;
       frame.appendChild(v);
       return v;

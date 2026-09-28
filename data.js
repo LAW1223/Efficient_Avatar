@@ -8,6 +8,9 @@
  *  - Speed-up ratios are computed from the raw throughput values, never typed in.
  */
 window.SITE_DATA = {
+  // Bump this whenever a video or poster file is replaced, so visitors get the new file.
+  assetVersion: 4,
+
   content: {
     title: "Efficient Half-Body Talking Avatar Generation",
     tagline: "Expressive, speech-driven half-body avatars, engineered for efficient inference.",
