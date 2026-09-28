@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Efficient Half-Body Talking Avatar Generation | HKUST × ASTRI</title>
-  <meta name="description" content="An HKUST–ASTRI research project on half-body talking avatar generation, using model distillation and quantization for efficient inference.">
+  <meta name="description" content="An HKUST–ASTRI research project on half-body talking avatar generation: 4-step distilled generation with 4-bit attention.">
   <!-- Remove this line once public release is approved by HKUST and ASTRI. -->
   <meta name="robots" content="noindex, nofollow">
   <meta property="og:title" content="Efficient Half-Body Talking Avatar Generation">
@@ -89,15 +89,16 @@
         linear-gradient(180deg, rgba(7, 10, 26, 0) 60%, var(--bg) 100%);
     }
     .hero-grid {
-      display: grid; grid-template-columns: 1.25fr 1fr; gap: clamp(32px, 6vw, 96px); align-items: center;
-      grid-template-areas: "copy frame" "cta frame";
+      display: grid; grid-template-columns: minmax(0, 4fr) minmax(0, 8fr); column-gap: clamp(32px, 5vw, 64px); row-gap: 0; align-items: start;
+      grid-template-areas: "title title" "copy frame" "cta frame";
     }
+    .hero-title { grid-area: title; }
     .hero-copy { grid-area: copy; align-self: end; }
     .hero-cta { grid-area: cta; align-self: start; }
     .hero-frame { grid-area: frame; }
     .hero h1 {
-      font-size: clamp(2.6rem, 6.4vw, 5.6rem); line-height: 0.98; letter-spacing: -0.045em;
-      font-weight: 600; margin: 0 0 28px; max-width: 12ch;
+      font-size: clamp(2.5rem, 5.4vw, 5rem); line-height: 0.98; letter-spacing: -0.045em;
+      font-weight: 600; margin: 0 0 clamp(28px, 3.5vw, 48px); max-width: 17ch;
     }
     .hero .tagline { font-size: clamp(1.15rem, 1.8vw, 1.4rem); line-height: 1.4; margin: 0 0 16px; max-width: 30ch; letter-spacing: -0.01em; }
     .hero .desc { color: var(--text-2); margin: 0; max-width: 46ch; }
@@ -113,10 +114,9 @@
 
     .frame {
       position: relative; background: var(--stage); border-radius: 20px; overflow: hidden;
-      border: 1px solid var(--line); aspect-ratio: var(--ar, 3 / 4); width: 100%;
+      border: 1px solid var(--line); aspect-ratio: var(--ar, 16 / 9); width: 100%;
     }
     .frame video { width: 100%; height: 100%; object-fit: cover; }
-    .hero-frame .frame { max-height: 78vh; }
     .frame-wrap { position: relative; margin-left: auto; }
     .frame-wrap .ring, .frame-wrap .ring-glow {
       position: absolute; inset: -1.5px; border-radius: 21.5px; pointer-events: none;
@@ -152,25 +152,25 @@
 
     /* Capabilities */
     .caps { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(20px, 3vw, 40px); }
-    .cap .frame { aspect-ratio: 4 / 5; border-radius: 14px; margin-bottom: 22px; }
+    .cap .frame { border-radius: 14px; margin-bottom: 22px; }
     .cap p { color: var(--text-2); margin: 0; max-width: 36ch; }
     .cap-panel {
-      aspect-ratio: 4 / 5; border-radius: 14px; margin-bottom: 22px; border: 1px solid var(--line);
-      background: var(--surface); backdrop-filter: blur(12px); display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 28px;
+      aspect-ratio: var(--ar, 16 / 9); border-radius: 14px; margin-bottom: 22px; border: 1px solid var(--line);
+      background: var(--surface); backdrop-filter: blur(12px); display: grid; grid-template-columns: 1fr 1fr; align-content: center; gap: 4px 16px; padding: clamp(18px, 2.4vw, 28px);
     }
     .cap-panel .step { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--text-2); }
     .cap-panel .step::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--text-2); flex: none; }
     .cap-panel .step:last-child { color: var(--text); }
     .cap-panel .step:last-child::before { background: var(--gold); box-shadow: 0 0 0 4px var(--gold-soft); }
     .cap-panel .bar { width: 1px; height: 22px; background: var(--line); margin-left: 3.5px; }
-    .cap-panel .big { font-size: clamp(2.4rem, 4vw, 3.4rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
-    .cap-panel .big-label { color: var(--text-2); font-size: 15px; margin-bottom: 18px; }
+    .cap-panel .big { font-size: clamp(1.7rem, 2.8vw, 2.5rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1.05; white-space: nowrap; }
+    .cap-panel .big-label { color: var(--text-2); font-size: 14px; line-height: 1.35; margin-top: 6px; }
 
     /* Demo */
-    .demo-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: clamp(24px, 4vw, 56px); align-items: start; }
+    .demo-layout { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: clamp(24px, 4vw, 56px); align-items: start; }
     .demo-layout > * { min-width: 0; }
-    .demo-stage { max-width: 620px; width: 100%; justify-self: center; }
-    .demo-stage .frame { max-height: 82vh; margin: 0 auto; }
+    .demo-stage { width: 100%; }
+    .stage-cap { color: var(--text-2); font-size: 14px; margin: 14px 2px 0; }
     .demo-stage { position: relative; isolation: isolate; }
     .demo-stage::before {
       content: ""; position: absolute; inset: 8% 4%; z-index: -1; border-radius: 40%; filter: blur(70px); opacity: .5;
@@ -200,10 +200,29 @@
     .clip[aria-pressed="true"] { color: #000; background: var(--text); border-color: var(--text); }
     .demo-note { color: var(--text-2); font-size: 14px; margin: 24px 0 0 20px; max-width: 30ch; }
 
+    /* Compare: two synced videos with a draggable divider */
+    .cmp-stage { --pos: 50%; touch-action: pan-y; }
+    .cmp-stage video { position: absolute; inset: 0; }
+    .cmp-stage .cmp-b { clip-path: inset(0 0 0 var(--pos)); }
+    .cmp-line { position: absolute; top: 0; bottom: 0; left: var(--pos); width: 2px; margin-left: -1px; z-index: 2; pointer-events: none;
+      background: linear-gradient(180deg, var(--blue), var(--violet), var(--cyan)); box-shadow: 0 0 18px rgba(139, 92, 246, .7); }
+    .cmp-knob { position: absolute; top: 50%; left: 50%; width: 44px; height: 44px; margin: -22px 0 0 -22px; border-radius: 50%;
+      background: rgba(7, 10, 26, .75); border: 2px solid #fff; backdrop-filter: blur(6px); display: grid; place-content: center; font-size: 15px; letter-spacing: 2px; }
+    .cmp-tag { position: absolute; top: 12px; z-index: 2; padding: 5px 12px; border-radius: 999px; font-size: 13px; font-weight: 500;
+      background: rgba(0, 0, 0, .55); backdrop-filter: blur(8px); border: 1px solid rgba(255,255,255,.18); pointer-events: none; }
+    .cmp-tag.a { left: 12px; } .cmp-tag.b { right: 12px; }
+    .cmp-range { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: ew-resize; -webkit-appearance: none; appearance: none; }
+    .cmp-range::-webkit-slider-thumb { -webkit-appearance: none; width: 44px; height: 100vh; }
+    .cmp-range:focus-visible + .cmp-line .cmp-knob { outline: 2px solid var(--gold); outline-offset: 3px; }
+    .cmp-stage .frame-ctl { z-index: 3; }
+    .cmp-foot { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; gap: 12px 24px; margin-top: 16px; }
+    .cmp-foot p { color: var(--text-2); font-size: 14px; margin: 0; max-width: 70ch; }
+    .cmp-foot .clips { margin: 0; }
+
     /* Performance */
     .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin-bottom: 40px; }
     .metric { background: rgba(7, 10, 26, .88); padding: clamp(28px, 4vw, 48px); }
-    .metric .v { font-size: clamp(3rem, 7vw, 5.5rem); font-weight: 600; letter-spacing: -0.05em; line-height: 1; }
+    .metric .v { font-size: clamp(2.8rem, 6vw, 4.8rem); font-weight: 600; letter-spacing: -0.05em; line-height: 1; }
     .metric .v small { background: var(--spectrum); -webkit-background-clip: text; background-clip: text; color: transparent; font-size: .5em; letter-spacing: -0.02em; margin-left: .06em; }
     .metric .l { color: var(--text-2); margin-top: 12px; }
     .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; }
@@ -214,6 +233,26 @@
     tbody tr:last-child td { border-bottom: 0; }
     tr.headline td { color: var(--text); font-weight: 600; }
     tr.headline td:first-child { box-shadow: inset 2px 0 0 var(--gold); }
+    .chart-card { border: 1px solid var(--line); border-radius: 16px; background: rgba(7, 10, 26, .6); padding: clamp(18px, 3vw, 32px); position: relative; }
+    .chart-card h3 { margin-bottom: 4px; }
+    .chart-sub { color: var(--text-2); font-size: 14px; margin: 0 0 16px; }
+    .legend { display: flex; flex-wrap: wrap; gap: 8px 20px; font-size: 14px; color: var(--text-2); margin-bottom: 8px; }
+    .legend span { display: inline-flex; align-items: center; gap: 8px; }
+    .legend i { width: 12px; height: 12px; border-radius: 3px; display: inline-block; }
+    .chart svg { width: 100%; height: auto; overflow: visible; }
+    .chart .tick { fill: var(--text-2); font-size: 12px; }
+    .chart .ratio { fill: var(--text); font-size: 13px; font-weight: 600; }
+    .chart .grid { stroke: var(--line); stroke-width: 1; }
+    .chart .hit { fill: transparent; cursor: default; }
+    .chart .hit:hover { fill: rgba(255, 255, 255, .04); }
+    .tip { position: absolute; pointer-events: none; z-index: 5; background: #10152e; border: 1px solid var(--line); border-radius: 10px;
+      padding: 10px 12px; font-size: 13px; line-height: 1.5; box-shadow: 0 8px 24px rgba(0,0,0,.4); white-space: nowrap; }
+    .tip b { font-weight: 600; }
+    .tip i { width: 8px; height: 8px; border-radius: 2px; display: inline-block; margin-right: 6px; }
+    details.data { margin-top: 16px; font-size: 14px; }
+    details.data summary { cursor: pointer; color: var(--text-2); }
+    details.data .table-wrap { margin-top: 12px; }
+    .scope { color: var(--text-2); font-size: 14px; margin: 18px 0 0; max-width: 72ch; }
     .settings { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px 32px; font-size: 14px; }
     .settings div { border-top: 1px solid var(--line); padding-top: 10px; }
     .settings dt { color: var(--text-2); }
@@ -250,6 +289,7 @@
     .contact a { color: var(--gold); text-underline-offset: 4px; }
 
     footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--text-2); font-size: 14px; }
+    footer .credit { width: 100%; }
     footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
 
     /* ---------- Motion ----------
@@ -339,7 +379,7 @@
     .motion .ambient { animation: drift 28s ease-in-out infinite alternate; }
 
     /* Demo switching crossfades. */
-    .motion .demo-stage video { animation: fade-in .6s ease both; }
+    .motion .demo-stage #demo-frame video { animation: fade-in .6s ease both; }
 
     /* ---------- Responsive ---------- */
     @media (max-width: 960px) {
@@ -353,6 +393,8 @@
         transform: scaleY(0); transform-origin: top;
       }
       .demo-layout { grid-template-columns: 1fr; }
+      .hero-grid { grid-template-columns: 1fr; grid-template-areas: "title" "copy" "frame" "cta"; row-gap: 28px; }
+      .hero h1 { max-width: 14ch; margin-bottom: 0; }
       .tabs { flex-direction: row; overflow-x: auto; order: -1; scrollbar-width: none; }
       .tab { border-left: 0; border-bottom: 2px solid var(--line); white-space: nowrap; padding: 12px 16px; font-size: 1rem; }
       .tab[aria-selected="true"] { border-bottom-color: var(--gold); }
@@ -360,8 +402,6 @@
     }
     @media (max-width: 720px) {
       .hero { padding: 96px 0 64px; }
-      .hero-grid { grid-template-columns: 1fr; grid-template-areas: "copy" "frame" "cta"; gap: 32px; }
-      .hero-frame .frame { max-height: 70vh; margin: 0 auto; }
       .btns { margin-top: 0; }
       .caps, .explain, .apps, .team { grid-template-columns: 1fr; }
       .metrics { grid-template-columns: 1fr; }
@@ -380,6 +420,7 @@
       <a class="brand" href="#top">HKUST<span>×</span>ASTRI</a>
       <ul id="nav-links">
         <li><a href="#demo">Demo</a></li>
+        <li><a href="#compare">4-bit vs 16-bit</a></li>
         <li><a href="#performance">Performance</a></li>
         <li><a href="#technology">Technology</a></li>
         <li><a href="#collaboration">Collaboration</a></li>
@@ -393,8 +434,8 @@
       <div class="hero-bg" aria-hidden="true"><canvas id="aurora"></canvas></div>
       <div class="hero-shade" aria-hidden="true"></div>
       <div class="wrap hero-grid">
+        <div class="hero-title"><h1 data-text="content.title"></h1></div>
         <div class="hero-copy">
-          <h1 data-text="content.title"></h1>
           <p class="tagline" data-text="content.tagline"></p>
           <p class="desc" data-text="content.description"></p>
         </div>
@@ -433,7 +474,7 @@
           <p>Every clip on this page is generated by the system. Pick a category, then turn the sound on to follow the lip sync.</p>
         </div>
         <div class="demo-layout">
-          <div class="demo-stage"><div class="frame" id="demo-frame"></div></div>
+          <div class="demo-stage"><div class="frame" id="demo-frame"></div><p class="stage-cap" id="demo-cap"></p></div>
           <div>
             <div class="tabs" role="tablist" aria-label="Demo categories" id="tabs"></div>
             <div class="clips" id="clips" aria-label="Clips in this category"></div>
@@ -442,14 +483,42 @@
       </div>
     </section>
 
-    <section class="sec" id="performance" aria-labelledby="perf-h" hidden>
+    <section class="sec" id="compare" aria-labelledby="cmp-h">
       <div class="wrap">
         <div class="sec-head">
-          <h2 id="perf-h">Faster generation. Lower memory.</h2>
-          <p>All configurations were measured on the same hardware. The full test settings are listed below the table.</p>
+          <h2 id="cmp-h">4-bit attention, side by side.</h2>
+          <p>Both halves come from the same 4-step model with the same speech, prompt and random seed. Only the attention precision differs. Drag the divider to compare.</p>
+        </div>
+        <div class="demo-stage">
+          <div class="frame cmp-stage" id="cmp-stage">
+            <input class="cmp-range" id="cmp-range" type="range" min="0" max="100" value="50" aria-label="Divider position between 16-bit and 4-bit attention">
+            <div class="cmp-line" aria-hidden="true"><span class="cmp-knob">‹›</span></div>
+            <span class="cmp-tag a" id="cmp-a-label"></span>
+            <span class="cmp-tag b" id="cmp-b-label"></span>
+          </div>
+        </div>
+        <div class="cmp-foot">
+          <p>16-bit precision is kept only in the final five attention blocks, the most sensitive to rounding error; all other attention runs in 4-bit (NVFP4).</p>
+          <div class="clips" id="cmp-clips" aria-label="Comparison clips"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="performance" aria-labelledby="perf-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="perf-h">Fewer steps. Faster attention.</h2>
+          <p>Distillation removes most of the denoising steps; 4-bit attention speeds up the most expensive operation inside each remaining step.</p>
         </div>
         <div class="metrics" id="metrics"></div>
-        <div class="table-wrap"><table id="bench-table"></table></div>
+        <div class="chart-card">
+          <h3>Attention throughput</h3>
+          <p class="chart-sub" id="chart-sub"></p>
+          <div class="legend" id="legend"></div>
+          <div class="chart" id="chart"></div>
+          <details class="data"><summary>Show the numbers</summary><div class="table-wrap"><table id="bench-table"></table></div></details>
+        </div>
+        <p class="scope" id="scope"></p>
         <dl class="settings" id="settings"></dl>
       </div>
     </section>
@@ -458,23 +527,23 @@
       <div class="wrap">
         <div class="sec-head">
           <h2 id="tech-h">Efficient by design.</h2>
-          <p>Two complementary techniques make the model cheaper to run.</p>
+          <p>Two complementary techniques make the model cheaper to run: one reduces how many steps it takes, the other makes each step lighter.</p>
         </div>
         <ol class="pipeline">
-          <li>Original model<span>Full-size avatar generator</span></li>
-          <li class="key">Distillation<span>Learn a more efficient model</span></li>
-          <li>Distilled model<span>Less computation per video</span></li>
-          <li class="key">Quantization<span>Lower numerical precision</span></li>
-          <li>Efficient inference<span>Lighter on available hardware</span></li>
+          <li>Original model<span>MiniMax H3, 40 denoising steps</span></li>
+          <li class="key">Step distillation<span>Learn to generate in fewer steps</span></li>
+          <li>4-step model<span>10× fewer denoising steps</span></li>
+          <li class="key">4-bit attention<span>NVFP4 with rotation and calibration</span></li>
+          <li>Efficient inference<span>Faster attention in every step</span></li>
         </ol>
         <div class="explain">
           <div>
             <h3>Distillation</h3>
-            <p>A more efficient model is trained to reproduce the behaviour of the original one, so it needs less computation to generate each video.</p>
+            <p>Video diffusion models build each clip by refining noise over many steps. The original model uses 40. Distillation trains a version that produces the video in just 4 steps.</p>
           </div>
           <div>
             <h3>Quantization</h3>
-            <p>Model weights are stored and computed at lower numerical precision. This reduces memory use and makes inference lighter on the hardware that is available.</p>
+            <p>Attention is one of the most expensive operations in video generation. We compute it in 4-bit floating point (NVFP4), using rotation and calibration to keep rounding errors small, so the output stays close to 16-bit attention.</p>
           </div>
         </div>
       </div>
@@ -511,6 +580,7 @@
     <div class="wrap">
       <span>Efficient Half-Body Talking Avatar Generation</span>
       <span>HKUST × ASTRI research collaboration</span>
+      <span class="credit" id="credit"></span>
     </div>
   </footer>
 
@@ -550,6 +620,7 @@
       });
     }
     splitWords(document.querySelector(".hero h1"), D.content.title.replace(/-/g, "‑"));
+    var tg = document.querySelector(".hero .tagline"); tg.textContent = tg.textContent.replace(/half-body/g, "half‑body");
     document.querySelectorAll(".sec h2").forEach(function (el) { splitWords(el, el.textContent); });
 
     /* ---------- Video helper ---------- */
@@ -590,8 +661,8 @@
     }
 
     /* ---------- Hero ---------- */
+    document.documentElement.style.setProperty("--ar", D.aspect || "16 / 9");
     var heroFrame = document.getElementById("hero-frame");
-    heroFrame.style.setProperty("--ar", D.hero.aspect || "3 / 4");
     if (isSet(D.hero.video)) {
       var hv = makeVideo(heroFrame, D.hero.video, D.hero.poster, false);
       hv.setAttribute("aria-label", "Generated half-body talking avatar");
@@ -705,48 +776,82 @@
       requestAnimationFrame(step);
     }
 
-    /* ---------- Benchmark (computed, validated) ---------- */
-    var B = D.benchmark, bench = null;
-    (function () {
-      var rows = B.rows.filter(function (r) { return isSet(r.latencySec) && isSet(r.memoryGB) && isSet(r.precision); });
-      var base = rows.filter(function (r) { return r.role === "baseline"; })[0];
-      var best = rows.filter(function (r) { return r.role === "headline"; })[0];
-      var s = B.settings;
-      var required = [B.hardware, B.baselineDefinition, s.resolution, s.frames, s.batchSize, s.steps, s.includesModelLoading, s.includesPrePostProcessing];
-      if (!base || !best || required.some(function (v) { return !isSet(v); })) {
-        console.info("[benchmark] Section hidden: fill in hardware, baseline definition, required settings and the baseline/headline rows in data.js.");
-        return;
-      }
-      bench = { rows: rows, base: base, best: best,
-        speedup: base.latencySec / best.latencySec,
-        memCut: (1 - best.memoryGB / base.memoryGB) * 100 };
-    })();
+    /* ---------- Performance (computed from raw values) ---------- */
+    var P = D.performance, A = P && P.attention;
+    var ratios = A ? A.ours.values.map(function (v, i) { return v / A.baseline.values[i]; }) : [];
+    var rMin = Math.min.apply(null, ratios), rMax = Math.max.apply(null, ratios);
+    function fx(v) { return (Math.floor(v * 10) / 10).toFixed(1); } // round down so the page never overstates
+    var ratioText = A ? fx(rMin) + "–" + fx(rMax) + "×" : "";
 
-    if (bench) {
+    if (A) {
       var m = document.getElementById("metrics");
-      [[bench.speedup, 1, "×", "faster than the baseline"],
-       [Math.round(bench.memCut), 0, "%", "less peak GPU memory"]].forEach(function (x) {
-        m.appendChild(h("div", { class: "metric" }, [
-          h("div", { class: "v" }, [countEl(x[0], x[1]), h("small", { text: x[2] })]),
-          h("div", { class: "l", text: x[3] + " (" + bench.best.name + " vs " + bench.base.name + ")" })]));
+      m.appendChild(h("div", { class: "metric" }, [
+        h("div", { class: "v" }, [countEl(P.steps.before, 0), h("small", { text: " → " }), countEl(P.steps.after, 0)]),
+        h("div", { class: "l", text: P.steps.note })]));
+      m.appendChild(h("div", { class: "metric" }, [
+        h("div", { class: "v" }, [countEl(Math.floor(rMin * 10) / 10, 1), h("small", { text: "–" }), countEl(Math.floor(rMax * 10) / 10, 1), h("small", { text: "×" })]),
+        h("div", { class: "l", text: "Attention throughput vs " + A.baseline.name + ", sequence lengths " + A.sequences[0] + "–" + A.sequences[A.sequences.length - 1] })]));
+
+      document.getElementById("chart-sub").textContent = A.metric + ". " + A.hardware + ".";
+      document.getElementById("scope").textContent = A.scope;
+      var COL = { base: "#8E6BD8", ours: "#20A3A0" }; // validated pair (dataviz validator, dark surface)
+      var lg = document.getElementById("legend");
+      [[A.baseline.name, COL.base], [A.ours.name, COL.ours]].forEach(function (x) {
+        var i = h("i"); i.style.background = x[1]; lg.appendChild(h("span", null, [i, x[0]]));
+      });
+
+      // Grouped bars: one group per sequence length, speed-up labelled above each group.
+      var W = 720, H = 300, pl = 44, pr = 8, pt = 28, pb = 30, yMax = 400;
+      var gw = (W - pl - pr) / A.sequences.length, bw = Math.min(40, gw * 0.3), gap = 2;
+      var y = function (v) { return pt + (H - pt - pb) * (1 - v / yMax); };
+      var out = "";
+      [0, 100, 200, 300, 400].forEach(function (t) {
+        out += '<line class="grid" x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(t) + '" y2="' + y(t) + '"/>';
+        out += '<text class="tick" x="' + (pl - 8) + '" y="' + (y(t) + 4) + '" text-anchor="end">' + t + '</text>';
+      });
+      function bar(x, v, c) { // 4px rounded top, square at the baseline
+        var yt = y(v), yb = y(0), r = 4;
+        return '<path fill="' + c + '" d="M' + x + ',' + yb + 'V' + (yt + r) + 'Q' + x + ',' + yt + ' ' + (x + r) + ',' + yt + 'H' + (x + bw - r) + 'Q' + (x + bw) + ',' + yt + ' ' + (x + bw) + ',' + (yt + r) + 'V' + yb + 'Z"/>';
+      }
+      A.sequences.forEach(function (lab, i) {
+        var cx = pl + gw * i + gw / 2, x0 = cx - bw - gap / 2, x1 = cx + gap / 2;
+        out += bar(x0, A.baseline.values[i], COL.base) + bar(x1, A.ours.values[i], COL.ours);
+        out += '<text class="ratio" x="' + (x1 + bw / 2) + '" y="' + (y(A.ours.values[i]) - 8) + '" text-anchor="middle">' + ratios[i].toFixed(2) + '×</text>';
+        out += '<text class="tick" x="' + cx + '" y="' + (H - 8) + '" text-anchor="middle">' + lab + '</text>';
+        out += '<rect class="hit" data-i="' + i + '" x="' + (pl + gw * i) + '" y="' + pt + '" width="' + gw + '" height="' + (H - pt - pb) + '"/>';
+      });
+      var chart = document.getElementById("chart");
+      chart.innerHTML = '<svg viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Attention throughput in TOPS: ' +
+        A.sequences.map(function (l, i) { return l + " " + A.baseline.name + " " + A.baseline.values[i] + ", ours " + A.ours.values[i]; }).join("; ") + '">' + out + '</svg>';
+      var tip = h("div", { class: "tip", hidden: "" }); chart.parentNode.appendChild(tip);
+      chart.querySelectorAll(".hit").forEach(function (r) {
+        r.addEventListener("pointerenter", function () {
+          var i = +r.dataset.i, sw = function (c) { var e = h("i"); e.style.background = c; return e; };
+          tip.innerHTML = "";
+          tip.appendChild(h("div", null, [h("b", { text: "Sequence " + A.sequences[i] })]));
+          tip.appendChild(h("div", null, [sw(COL.base), A.baseline.name + ": " + A.baseline.values[i] + " TOPS"]));
+          tip.appendChild(h("div", null, [sw(COL.ours), A.ours.name + ": " + A.ours.values[i] + " TOPS"]));
+          tip.appendChild(h("div", { text: ratios[i].toFixed(2) + "× faster" }));
+          tip.hidden = false;
+        });
+        r.addEventListener("pointermove", function (e) {
+          var box = chart.parentNode.getBoundingClientRect();
+          var x = e.clientX - box.left + 14, maxX = box.width - tip.offsetWidth - 8;
+          tip.style.left = Math.min(x, maxX) + "px"; tip.style.top = (e.clientY - box.top + 14) + "px";
+        });
+        r.addEventListener("pointerleave", function () { tip.hidden = true; });
       });
       var t = document.getElementById("bench-table");
-      t.appendChild(h("thead", null, [h("tr", null, ["Configuration", "Precision", "Inference time", "Peak GPU memory"].map(function (c) { return h("th", { scope: "col", text: c }); }))]));
+      t.appendChild(h("thead", null, [h("tr", null, ["Sequence length", A.baseline.name + " (TOPS)", A.ours.name + " (TOPS)", "Speed-up"].map(function (c) { return h("th", { scope: "col", text: c }); }))]));
       var tb = h("tbody");
-      bench.rows.forEach(function (r) {
-        tb.appendChild(h("tr", { class: r.role === "headline" ? "headline" : null }, [
-          h("td", { text: r.name }), h("td", { text: r.precision }),
-          h("td", { text: Number(r.latencySec).toFixed(1) + " s" }), h("td", { text: Number(r.memoryGB).toFixed(1) + " GB" })]));
+      A.sequences.forEach(function (lab, i) {
+        tb.appendChild(h("tr", null, [h("td", { text: lab }), h("td", { text: A.baseline.values[i] }), h("td", { text: A.ours.values[i] }), h("td", { text: ratios[i].toFixed(2) + "×" })]));
       });
       t.appendChild(tb);
-      var s = B.settings, yn = function (v) { return v ? "Included" : "Excluded"; };
-      var items = [["Hardware", B.hardware], ["Baseline", B.baselineDefinition], ["Output resolution", s.resolution],
-        ["Frames", s.frames], ["Duration", isSet(s.durationSec) ? s.durationSec + " s" : null], ["Batch size", s.batchSize],
-        ["Inference steps", s.steps], ["Software", s.runtime], ["Model loading", yn(s.includesModelLoading)],
-        ["Pre- and post-processing", yn(s.includesPrePostProcessing)], ["Measurement", s.runs]];
       var dl = document.getElementById("settings");
-      items.forEach(function (it) { if (isSet(it[1])) dl.appendChild(h("div", null, [h("dt", { text: it[0] }), h("dd", { text: String(it[1]) })])); });
-      document.getElementById("performance").hidden = false;
+      [["Hardware", A.hardware], ["Workload", A.workload], ["Sequence lengths", A.sequences.join(", ") + " tokens"], ["Baseline", A.baseline.name]].forEach(function (it) {
+        dl.appendChild(h("div", null, [h("dt", { text: it[0] }), h("dd", { text: it[1] })]));
+      });
     } else { hideSection("performance"); }
 
     /* ---------- Capabilities ---------- */
@@ -756,10 +861,10 @@
       if (isSet(c.video)) {
         var f = h("div", { class: "frame" }); card.appendChild(f);
         var v = makeVideo(f, c.video, c.poster, true); v.setAttribute("aria-label", c.title + " example"); watch(v);
-      } else if (bench) {
+      } else if (A) {
         card.appendChild(h("div", { class: "cap-panel" }, [
-          h("div", { class: "big" }, [countEl(bench.speedup, 1), "×"]), h("div", { class: "big-label", text: "faster" }),
-          h("div", { class: "big" }, [countEl(Math.round(bench.memCut), 0), "%"]), h("div", { class: "big-label", text: "less GPU memory" })]));
+          h("div", null, [h("div", { class: "big", text: P.steps.before + " → " + P.steps.after }), h("div", { class: "big-label", text: "denoising steps" })]),
+          h("div", null, [h("div", { class: "big", text: ratioText }), h("div", { class: "big-label", text: "faster attention" })])]));
       } else {
         card.appendChild(h("div", { class: "cap-panel", "aria-hidden": "true" }, [
           h("div", { class: "step", text: "Original model" }), h("div", { class: "bar" }),
@@ -778,7 +883,6 @@
       var cats = []; demos.forEach(function (d) { if (cats.indexOf(d.category) < 0) cats.push(d.category); });
       var tabsEl = document.getElementById("tabs"), clipsEl = document.getElementById("clips");
       var stage = document.getElementById("demo-frame");
-      stage.style.setProperty("--ar", D.demoAspect || "3 / 4");
       var soundOn = false, current = null, curVideo = null;
 
       var soundBtn = h("button", { class: "frame-ctl sound-btn", type: "button" });
@@ -795,7 +899,7 @@
         current = d;
         stage.innerHTML = "";
         curVideo = makeVideo(stage, d.video, d.poster, false);
-        curVideo.setAttribute("aria-label", d.category + ": " + d.title);
+        curVideo.setAttribute("aria-label", d.category + " demo");
         curVideo.muted = !(soundOn && d.hasAudio);
         curVideo.preload = "auto";
         stage.appendChild(soundBtn);
@@ -803,6 +907,7 @@
         syncSound();
         watch(curVideo);
         clipsEl.querySelectorAll(".clip").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.id === d.id)); });
+        document.getElementById("demo-cap").textContent = d.model ? "Generated by the " + d.model + "." : "";
       }
       function selectCat(cat, focus) {
         tabsEl.querySelectorAll(".tab").forEach(function (t) {
@@ -835,6 +940,50 @@
       stage.setAttribute("role", "tabpanel");
       selectCat(cats[0]);
     }
+
+    /* ---------- 16-bit vs 4-bit comparison ---------- */
+    var C = D.compare;
+    if (!C || !C.pairs || !C.pairs.length) { hideSection("compare"); }
+    else {
+      var cs = document.getElementById("cmp-stage"), range = document.getElementById("cmp-range");
+      document.getElementById("cmp-a-label").textContent = C.aLabel;
+      document.getElementById("cmp-b-label").textContent = C.bLabel;
+      range.addEventListener("input", function () { cs.style.setProperty("--pos", range.value + "%"); });
+      var va = null, vb = null, cSound = false, syncRaf = 0;
+      var cSoundBtn = h("button", { class: "frame-ctl sound-btn", type: "button" });
+      function syncCSound() { cSoundBtn.textContent = cSound ? "Sound off" : "Sound on"; cSoundBtn.setAttribute("aria-pressed", String(cSound)); }
+      cSoundBtn.addEventListener("click", function () { cSound = !cSound; if (va) { va.muted = !cSound; if (cSound) va.play().catch(function () {}); } syncCSound(); });
+      // Keep the 4-bit clip locked to the 16-bit clip, which drives playback and sound.
+      function follow() {
+        if (va && vb && Math.abs(vb.currentTime - va.currentTime) > 0.05) vb.currentTime = va.currentTime;
+        syncRaf = va && !va.paused ? requestAnimationFrame(follow) : 0;
+      }
+      function loadPair(pair) {
+        if (va) { io && io.unobserve(va); va.pause(); }
+        cs.querySelectorAll("video, .frame-ctl, .missing").forEach(function (n) { n.remove(); });
+        va = makeVideo(cs, pair.a.video, pair.a.poster, false); va.classList.add("cmp-a");
+        vb = makeVideo(cs, pair.b.video, pair.b.poster, false); vb.classList.add("cmp-b");
+        va.setAttribute("aria-label", C.aLabel + " output"); vb.setAttribute("aria-label", C.bLabel + " output");
+        cs.insertBefore(va, cs.firstChild); cs.insertBefore(vb, va.nextSibling);
+        va.muted = !cSound; va.preload = vb.preload = "auto";
+        va.addEventListener("play", function () { vb.play().catch(function () {}); if (!syncRaf) syncRaf = requestAnimationFrame(follow); });
+        va.addEventListener("pause", function () { vb.pause(); });
+        va.addEventListener("seeked", function () { vb.currentTime = va.currentTime; });
+        cs.appendChild(cSoundBtn); syncCSound();
+        playPauseButton(cs, va);
+        watch(va);
+        document.querySelectorAll("#cmp-clips .clip").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.id === pair.id)); });
+      }
+      var cc = document.getElementById("cmp-clips");
+      if (C.pairs.length > 1) C.pairs.forEach(function (pair, i) {
+        var b = h("button", { class: "clip", type: "button", "data-id": pair.id, "aria-pressed": "false", text: "Example " + (i + 1) });
+        b.addEventListener("click", function () { loadPair(pair); });
+        cc.appendChild(b);
+      });
+      loadPair(C.pairs[0]);
+    }
+
+    if (isSet(D.credits)) document.getElementById("credit").textContent = D.credits;
 
     /* ---------- Applications, collaboration, team ---------- */
     var apps = document.getElementById("apps");
