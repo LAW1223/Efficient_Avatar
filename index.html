@@ -1,0 +1,617 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Efficient Half-Body Talking Avatar Generation | HKUST × ASTRI</title>
+  <meta name="description" content="An HKUST–ASTRI research project on half-body talking avatar generation, using model distillation and quantization for efficient inference.">
+  <!-- Remove this line once public release is approved by HKUST and ASTRI. -->
+  <meta name="robots" content="noindex, nofollow">
+  <meta property="og:title" content="Efficient Half-Body Talking Avatar Generation">
+  <meta property="og:description" content="An HKUST × ASTRI research project on efficient half-body talking avatar generation.">
+  <meta property="og:image" content="images/og/og-cover.jpg">
+  <meta property="og:type" content="website">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --stage: #000000;
+      --bg: #0C0D10;
+      --surface: #15161A;
+      --text: #F5F5F4;
+      --text-2: #9A9AA0;
+      --line: rgba(255, 255, 255, 0.10);
+      --gold: #C9A45C;
+      --gold-soft: rgba(201, 164, 92, 0.16);
+      --gutter: clamp(16px, 5vw, 72px);
+      --max: 1240px;
+      --font: "Geist", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; -webkit-text-size-adjust: 100%; }
+    body {
+      margin: 0; background: var(--bg); color: var(--text);
+      font-family: var(--font); font-size: 17px; line-height: 1.6;
+      -webkit-font-smoothing: antialiased; overflow-x: hidden;
+    }
+    img, video, svg { display: block; max-width: 100%; }
+    a { color: inherit; }
+    button { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--gold); outline-offset: 3px; border-radius: 4px; }
+    .wrap { max-width: var(--max); margin: 0 auto; padding: 0 var(--gutter); }
+    .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+    /* ---------- Nav ---------- */
+    .nav {
+      position: fixed; inset: 0 0 auto 0; z-index: 20;
+      background: rgba(12, 13, 16, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav .wrap { display: flex; align-items: center; justify-content: space-between; height: 60px; gap: 24px; }
+    .brand { font-weight: 600; letter-spacing: -0.01em; text-decoration: none; white-space: nowrap; }
+    .brand span { color: var(--gold); padding: 0 0.3em; font-weight: 400; }
+    .nav ul { display: flex; gap: 28px; list-style: none; margin: 0; padding: 0; font-size: 14px; color: var(--text-2); }
+    .nav ul a { text-decoration: none; transition: color .15s; }
+    .nav ul a:hover { color: var(--text); }
+    @media (max-width: 820px) { .nav ul { display: none; } }
+
+    /* ---------- Hero ---------- */
+    .hero { padding: 120px 0 88px; background: radial-gradient(120% 80% at 80% 20%, #16171c 0%, var(--bg) 60%); }
+    .hero-grid {
+      display: grid; grid-template-columns: 1.25fr 1fr; gap: clamp(32px, 6vw, 96px); align-items: center;
+      grid-template-areas: "copy frame" "cta frame";
+    }
+    .hero-copy { grid-area: copy; align-self: end; }
+    .hero-cta { grid-area: cta; align-self: start; }
+    .hero-frame { grid-area: frame; }
+    .hero h1 {
+      font-size: clamp(2.6rem, 6.4vw, 5.6rem); line-height: 0.98; letter-spacing: -0.045em;
+      font-weight: 600; margin: 0 0 28px; max-width: 12ch;
+    }
+    .hero .tagline { font-size: clamp(1.15rem, 1.8vw, 1.4rem); line-height: 1.4; margin: 0 0 16px; max-width: 30ch; letter-spacing: -0.01em; }
+    .hero .desc { color: var(--text-2); margin: 0; max-width: 46ch; }
+    .btns { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+    .btn {
+      display: inline-flex; align-items: center; height: 48px; padding: 0 22px; border-radius: 999px;
+      text-decoration: none; font-weight: 500; font-size: 15px; border: 1px solid var(--line);
+      transition: background .15s, border-color .15s;
+    }
+    .btn-primary { background: var(--text); color: #000; border-color: var(--text); }
+    .btn-primary:hover { background: #fff; }
+    .btn-ghost:hover { border-color: rgba(255,255,255,.35); }
+
+    .frame {
+      position: relative; background: var(--stage); border-radius: 20px; overflow: hidden;
+      border: 1px solid var(--line); aspect-ratio: var(--ar, 3 / 4); width: 100%;
+    }
+    .frame video { width: 100%; height: 100%; object-fit: cover; }
+    .hero-frame .frame { max-height: 78vh; margin-left: auto; }
+    .frame .missing {
+      position: absolute; inset: 0; display: grid; place-content: center; text-align: center; padding: 24px;
+      color: var(--text-2); font-size: 13px; line-height: 1.5;
+      background: repeating-linear-gradient(135deg, #0b0b0d 0 14px, #101115 14px 28px);
+    }
+    .frame .missing strong { color: var(--text); font-weight: 500; font-size: 14px; display: block; margin-bottom: 4px; }
+    .frame-ctl {
+      position: absolute; right: 12px; bottom: 12px; z-index: 2; height: 34px; padding: 0 14px;
+      border-radius: 999px; border: 1px solid rgba(255,255,255,.2); background: rgba(0,0,0,.55);
+      backdrop-filter: blur(8px); font-size: 13px; cursor: pointer;
+    }
+    .frame-ctl:hover { background: rgba(0,0,0,.8); }
+    .wave { margin-top: 18px; height: 36px; width: 100%; color: var(--gold); }
+
+    /* ---------- Sections ---------- */
+    section { scroll-margin-top: 60px; }
+    .sec { padding: clamp(80px, 11vw, 144px) 0; border-top: 1px solid var(--line); }
+    .sec-head { max-width: 720px; margin-bottom: clamp(40px, 5vw, 64px); }
+    .sec h2 { font-size: clamp(2rem, 4.2vw, 3.4rem); line-height: 1.02; letter-spacing: -0.035em; font-weight: 600; margin: 0 0 18px; }
+    .sec-head p { color: var(--text-2); margin: 0; max-width: 60ch; }
+    h3 { font-size: 1.25rem; letter-spacing: -0.015em; font-weight: 600; margin: 0 0 8px; line-height: 1.25; }
+
+    .why { padding: clamp(64px, 8vw, 104px) 0; border-top: 1px solid var(--line); }
+    .why p { font-size: clamp(1.35rem, 2.6vw, 2.1rem); line-height: 1.3; letter-spacing: -0.02em; max-width: 34ch; margin: 0; font-weight: 400; }
+    .why p .dim { color: var(--text-2); }
+
+    /* Capabilities */
+    .caps { display: grid; grid-template-columns: repeat(3, 1fr); gap: clamp(20px, 3vw, 40px); }
+    .cap .frame { aspect-ratio: 4 / 5; border-radius: 14px; margin-bottom: 22px; }
+    .cap p { color: var(--text-2); margin: 0; max-width: 36ch; }
+    .cap-panel {
+      aspect-ratio: 4 / 5; border-radius: 14px; margin-bottom: 22px; border: 1px solid var(--line);
+      background: var(--surface); display: flex; flex-direction: column; justify-content: center; gap: 10px; padding: 28px;
+    }
+    .cap-panel .step { display: flex; align-items: center; gap: 12px; font-size: 15px; color: var(--text-2); }
+    .cap-panel .step::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--text-2); flex: none; }
+    .cap-panel .step:last-child { color: var(--text); }
+    .cap-panel .step:last-child::before { background: var(--gold); box-shadow: 0 0 0 4px var(--gold-soft); }
+    .cap-panel .bar { width: 1px; height: 22px; background: var(--line); margin-left: 3.5px; }
+    .cap-panel .big { font-size: clamp(2.4rem, 4vw, 3.4rem); font-weight: 600; letter-spacing: -0.04em; line-height: 1; }
+    .cap-panel .big-label { color: var(--text-2); font-size: 15px; margin-bottom: 18px; }
+
+    /* Demo */
+    .demo-layout { display: grid; grid-template-columns: minmax(0, 1fr) 300px; gap: clamp(24px, 4vw, 56px); align-items: start; }
+    .demo-layout > * { min-width: 0; }
+    .demo-stage { max-width: 620px; width: 100%; justify-self: center; }
+    .demo-stage .frame { max-height: 82vh; margin: 0 auto; }
+    .sound-btn { right: auto; left: 12px; }
+    .tabs { display: flex; flex-direction: column; gap: 4px; }
+    .tab {
+      text-align: left; background: none; border: 0; border-left: 2px solid var(--line); padding: 14px 18px;
+      cursor: pointer; font-size: 1.15rem; font-weight: 500; color: var(--text-2); letter-spacing: -0.01em;
+      transition: color .15s, border-color .15s;
+    }
+    .tab:hover { color: var(--text); }
+    .tab[aria-selected="true"] { color: var(--text); border-left-color: var(--gold); }
+    .clips { display: flex; gap: 8px; margin: 18px 0 0 20px; flex-wrap: wrap; }
+    .clip {
+      height: 34px; padding: 0 14px; border-radius: 999px; background: none; border: 1px solid var(--line);
+      color: var(--text-2); font-size: 13px; cursor: pointer;
+    }
+    .clip[aria-pressed="true"] { color: #000; background: var(--text); border-color: var(--text); }
+    .demo-note { color: var(--text-2); font-size: 14px; margin: 24px 0 0 20px; max-width: 30ch; }
+
+    /* Performance */
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 16px; overflow: hidden; margin-bottom: 40px; }
+    .metric { background: var(--bg); padding: clamp(28px, 4vw, 48px); }
+    .metric .v { font-size: clamp(3rem, 7vw, 5.5rem); font-weight: 600; letter-spacing: -0.05em; line-height: 1; }
+    .metric .v small { color: var(--gold); font-size: .5em; letter-spacing: -0.02em; margin-left: .06em; }
+    .metric .l { color: var(--text-2); margin-top: 12px; }
+    .table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: 15px; font-variant-numeric: tabular-nums; min-width: 520px; }
+    th, td { padding: 16px 20px; text-align: right; border-bottom: 1px solid var(--line); }
+    th:first-child, td:first-child { text-align: left; }
+    thead th { color: var(--text-2); font-weight: 500; font-size: 13px; }
+    tbody tr:last-child td { border-bottom: 0; }
+    tr.headline td { color: var(--text); font-weight: 600; }
+    tr.headline td:first-child { box-shadow: inset 2px 0 0 var(--gold); }
+    .settings { margin-top: 28px; display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 14px 32px; font-size: 14px; }
+    .settings div { border-top: 1px solid var(--line); padding-top: 10px; }
+    .settings dt { color: var(--text-2); }
+    .settings dd { margin: 2px 0 0; }
+
+    /* Technology */
+    .pipeline { list-style: none; margin: 0 0 56px; padding: 0; display: grid; grid-template-columns: repeat(5, 1fr); counter-reset: s; }
+    .pipeline li { position: relative; padding: 22px 16px 0 0; border-top: 1px solid var(--line); counter-increment: s; font-weight: 500; letter-spacing: -0.01em; }
+    .pipeline li::before { content: counter(s); position: absolute; top: -12px; left: 0; width: 24px; height: 24px; border-radius: 50%; background: var(--bg); border: 1px solid var(--line); display: grid; place-content: center; font-size: 12px; color: var(--text-2); }
+    .pipeline li.key::before { border-color: var(--gold); color: var(--gold); }
+    .pipeline li span { display: block; color: var(--text-2); font-weight: 400; font-size: 14px; margin-top: 4px; }
+    .explain { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(24px, 5vw, 72px); }
+    .explain p { color: var(--text-2); margin: 0; max-width: 52ch; }
+
+    /* Applications */
+    .apps { display: grid; grid-template-columns: 1fr 1fr; gap: 0 clamp(24px, 5vw, 72px); }
+    .apps div { border-top: 1px solid var(--line); padding: 24px 0 32px; }
+    .apps p { color: var(--text-2); margin: 0; max-width: 44ch; }
+
+    /* Collaboration */
+    .partners { display: flex; align-items: center; gap: clamp(20px, 5vw, 64px); flex-wrap: wrap; margin-bottom: 32px; }
+    .partner .name { font-size: clamp(2.8rem, 7vw, 5.5rem); font-weight: 700; letter-spacing: -0.05em; line-height: 1; }
+    .partner img { height: clamp(48px, 7vw, 80px); width: auto; }
+    .partner .full { color: var(--text-2); font-size: 14px; margin-top: 10px; max-width: 28ch; }
+    .times { font-size: clamp(2rem, 4vw, 3rem); color: var(--gold); font-weight: 300; }
+    .collab-text { font-size: 1.15rem; max-width: 56ch; margin: 0; }
+
+    /* Team */
+    .team { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 clamp(24px, 4vw, 56px); }
+    .team li { border-top: 1px solid var(--line); padding: 20px 0 28px; }
+    .team .n { font-size: 1.2rem; font-weight: 600; letter-spacing: -0.015em; }
+    .team .m { color: var(--text-2); font-size: 15px; }
+    .contact { margin-top: 40px; font-size: 1.1rem; }
+    .contact a { color: var(--gold); text-underline-offset: 4px; }
+
+    footer { border-top: 1px solid var(--line); padding: 32px 0 48px; color: var(--text-2); font-size: 14px; }
+    footer .wrap { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 12px; }
+
+    /* ---------- Responsive ---------- */
+    @media (max-width: 960px) {
+      .caps { grid-template-columns: 1fr 1fr; }
+      .pipeline { grid-template-columns: 1fr; gap: 0; border-left: 1px solid var(--line); margin-left: 12px; }
+      .pipeline li { border-top: 0; padding: 0 0 26px 28px; }
+      .pipeline li::before { top: -2px; left: -13px; }
+      .demo-layout { grid-template-columns: 1fr; }
+      .tabs { flex-direction: row; overflow-x: auto; order: -1; scrollbar-width: none; }
+      .tab { border-left: 0; border-bottom: 2px solid var(--line); white-space: nowrap; padding: 12px 16px; font-size: 1rem; }
+      .tab[aria-selected="true"] { border-bottom-color: var(--gold); }
+      .clips, .demo-note { margin-left: 0; }
+    }
+    @media (max-width: 720px) {
+      .hero { padding: 96px 0 64px; }
+      .hero-grid { grid-template-columns: 1fr; grid-template-areas: "copy" "frame" "cta"; gap: 32px; }
+      .hero-frame .frame { max-height: 70vh; margin: 0 auto; }
+      .btns { margin-top: 0; }
+      .caps, .explain, .apps, .team { grid-template-columns: 1fr; }
+      .metrics { grid-template-columns: 1fr; }
+      .times { width: 100%; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      html { scroll-behavior: auto; }
+      * { transition: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <nav class="nav" aria-label="Main">
+    <div class="wrap">
+      <a class="brand" href="#top">HKUST<span>×</span>ASTRI</a>
+      <ul id="nav-links">
+        <li><a href="#demo">Demo</a></li>
+        <li><a href="#performance">Performance</a></li>
+        <li><a href="#technology">Technology</a></li>
+        <li><a href="#collaboration">Collaboration</a></li>
+        <li><a href="#team">Team</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <main id="top">
+    <header class="hero">
+      <div class="wrap hero-grid">
+        <div class="hero-copy">
+          <h1 data-text="content.title"></h1>
+          <p class="tagline" data-text="content.tagline"></p>
+          <p class="desc" data-text="content.description"></p>
+        </div>
+        <div class="hero-frame">
+          <div class="frame" id="hero-frame"></div>
+          <svg class="wave" id="wave" viewBox="0 0 400 36" preserveAspectRatio="none" aria-hidden="true"></svg>
+        </div>
+        <div class="hero-cta">
+          <div class="btns">
+            <a class="btn btn-primary" href="#demo">Watch demo</a>
+            <a class="btn btn-ghost" href="#technology">Explore the technology</a>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <section class="why" aria-label="Why this matters now">
+      <div class="wrap"><p id="why"></p></div>
+    </section>
+
+    <section class="sec" id="capabilities" aria-labelledby="cap-h">
+      <div class="wrap">
+        <div class="sec-head"><h2 id="cap-h">More than lip sync.</h2></div>
+        <div class="caps" id="caps"></div>
+      </div>
+    </section>
+
+    <section class="sec" id="demo" aria-labelledby="demo-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="demo-h">See it in motion.</h2>
+          <p>Every clip on this page is generated by the system. Pick a category, then turn the sound on to follow the lip sync.</p>
+        </div>
+        <div class="demo-layout">
+          <div class="demo-stage"><div class="frame" id="demo-frame"></div></div>
+          <div>
+            <div class="tabs" role="tablist" aria-label="Demo categories" id="tabs"></div>
+            <div class="clips" id="clips" aria-label="Clips in this category"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="performance" aria-labelledby="perf-h" hidden>
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="perf-h">Faster generation. Lower memory.</h2>
+          <p>All configurations were measured on the same hardware. The full test settings are listed below the table.</p>
+        </div>
+        <div class="metrics" id="metrics"></div>
+        <div class="table-wrap"><table id="bench-table"></table></div>
+        <dl class="settings" id="settings"></dl>
+      </div>
+    </section>
+
+    <section class="sec" id="technology" aria-labelledby="tech-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="tech-h">Efficient by design.</h2>
+          <p>Two complementary techniques make the model cheaper to run.</p>
+        </div>
+        <ol class="pipeline">
+          <li>Original model<span>Full-size avatar generator</span></li>
+          <li class="key">Distillation<span>Learn a more efficient model</span></li>
+          <li>Distilled model<span>Less computation per video</span></li>
+          <li class="key">Quantization<span>Lower numerical precision</span></li>
+          <li>Efficient inference<span>Lighter on available hardware</span></li>
+        </ol>
+        <div class="explain">
+          <div>
+            <h3>Distillation</h3>
+            <p>A more efficient model is trained to reproduce the behaviour of the original one, so it needs less computation to generate each video.</p>
+          </div>
+          <div>
+            <h3>Quantization</h3>
+            <p>Model weights are stored and computed at lower numerical precision. This reduces memory use and makes inference lighter on the hardware that is available.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="sec" id="applications" aria-labelledby="apps-h">
+      <div class="wrap">
+        <div class="sec-head">
+          <h2 id="apps-h">From research to real-world interaction.</h2>
+          <p>Efficient talking avatars open up a range of potential applications.</p>
+        </div>
+        <div class="apps" id="apps"></div>
+      </div>
+    </section>
+
+    <section class="sec" id="collaboration" aria-labelledby="collab-h">
+      <div class="wrap">
+        <div class="sec-head"><h2 id="collab-h">Research meets deployment.</h2></div>
+        <div class="partners" id="partners"></div>
+        <p class="collab-text" data-text="collaboration.text"></p>
+      </div>
+    </section>
+
+    <section class="sec" id="team" aria-labelledby="team-h">
+      <div class="wrap">
+        <div class="sec-head"><h2 id="team-h">Team</h2></div>
+        <ul class="team" id="team-list"></ul>
+        <p class="contact" id="contact" hidden></p>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="wrap">
+      <span>Efficient Half-Body Talking Avatar Generation</span>
+      <span>HKUST × ASTRI research collaboration</span>
+    </div>
+  </footer>
+
+  <script src="data.js"></script>
+  <script>
+  (function () {
+    "use strict";
+    var D = window.SITE_DATA;
+    var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function get(path) { return path.split(".").reduce(function (o, k) { return o == null ? o : o[k]; }, D); }
+    function h(tag, attrs, children) {
+      var n = document.createElement(tag);
+      if (attrs) Object.keys(attrs).forEach(function (k) {
+        if (attrs[k] == null) return;
+        if (k === "text") n.textContent = attrs[k];
+        else if (k === "class") n.className = attrs[k];
+        else n.setAttribute(k, attrs[k]);
+      });
+      (children || []).forEach(function (c) { if (c != null && c !== false) n.appendChild(typeof c === "object" ? c : document.createTextNode(String(c))); });
+      return n;
+    }
+    function isSet(v) { return v !== null && v !== undefined && v !== ""; }
+    function hideSection(id) {
+      var s = document.getElementById(id); if (s) s.hidden = true;
+      var a = document.querySelector('#nav-links a[href="#' + id + '"]'); if (a) a.parentNode.hidden = true;
+    }
+
+    document.querySelectorAll("[data-text]").forEach(function (n) { n.textContent = get(n.getAttribute("data-text")) || ""; });
+    // Keep "Half-Body" on one line in the display title.
+    document.querySelector(".hero h1").textContent = D.content.title.replace(/-/g, "‑");
+    // Keep "Half-Body" on one line in the display title.
+    document.querySelector(".hero h1").textContent = D.content.title.replace(/-/g, "‑");
+
+    /* ---------- Video helper ---------- */
+    // Shows a clear notice instead of a broken player when a file is missing.
+    function showMissing(frame, src) {
+      if (frame.querySelector(".missing")) return;
+      frame.appendChild(h("div", { class: "missing" }, [h("strong", { text: "Video not added yet" }), src || ""]));
+      frame.querySelectorAll(".frame-ctl").forEach(function (b) { b.hidden = true; });
+    }
+    function makeVideo(frame, src, poster, lazy) {
+      var v = h("video", { playsinline: "", poster: poster || null, preload: lazy ? "none" : "metadata" });
+      v.muted = true; v.loop = true; v.playsInline = true;
+      v.addEventListener("error", function () { showMissing(frame, src); });
+      if (!lazy) v.src = src; else v.dataset.src = src;
+      frame.appendChild(v);
+      return v;
+    }
+    // Load and play clips only while they are on screen.
+    var io = "IntersectionObserver" in window ? new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        var v = e.target;
+        if (e.isIntersecting) {
+          if (v.dataset.src && !v.src) v.src = v.dataset.src;
+          if (!reduceMotion && !v.dataset.userPaused) v.play().catch(function () {});
+        } else { v.pause(); }
+      });
+    }, { threshold: 0.35 }) : null;
+    function watch(v) { if (io) io.observe(v); else if (v.dataset.src) v.src = v.dataset.src; }
+    function playPauseButton(frame, v) {
+      var b = h("button", { class: "frame-ctl", type: "button" });
+      function sync() { b.textContent = v.paused ? "Play" : "Pause"; b.setAttribute("aria-label", (v.paused ? "Play" : "Pause") + " video"); }
+      b.addEventListener("click", function () {
+        if (v.paused) { delete v.dataset.userPaused; v.play().catch(function () {}); }
+        else { v.dataset.userPaused = "1"; v.pause(); }
+      });
+      v.addEventListener("play", sync); v.addEventListener("pause", sync); sync();
+      frame.appendChild(b);
+    }
+
+    /* ---------- Hero ---------- */
+    var heroFrame = document.getElementById("hero-frame");
+    heroFrame.style.setProperty("--ar", D.hero.aspect || "3 / 4");
+    if (isSet(D.hero.video)) {
+      var hv = makeVideo(heroFrame, D.hero.video, D.hero.poster, false);
+      hv.setAttribute("aria-label", "Generated half-body talking avatar");
+      if (!reduceMotion) hv.autoplay = true;
+      playPauseButton(heroFrame, hv);
+      watch(hv);
+    } else { showMissing(heroFrame, "hero video"); }
+
+    // Speech waveform motif under the hero frame (decorative).
+    (function () {
+      var svg = document.getElementById("wave"), bars = 80, w = 400 / bars, seed = 7, out = "";
+      function rnd() { seed = (seed * 9301 + 49297) % 233280; return seed / 233280; }
+      for (var i = 0; i < bars; i++) {
+        var env = Math.sin(Math.PI * i / (bars - 1)) * (0.55 + 0.45 * Math.sin(i / 4.3));
+        var bh = Math.max(2, Math.abs(env) * 34 * (0.35 + 0.65 * rnd()));
+        out += '<rect x="' + (i * w + w * 0.3).toFixed(2) + '" y="' + ((36 - bh) / 2).toFixed(2) + '" width="' + (w * 0.4).toFixed(2) + '" height="' + bh.toFixed(2) + '" rx="1" fill="currentColor" opacity="' + (0.35 + 0.65 * Math.abs(env)).toFixed(2) + '"/>';
+      }
+      svg.innerHTML = out;
+    })();
+
+    document.getElementById("why").textContent = D.content.whyNow;
+
+    /* ---------- Benchmark (computed, validated) ---------- */
+    var B = D.benchmark, bench = null;
+    (function () {
+      var rows = B.rows.filter(function (r) { return isSet(r.latencySec) && isSet(r.memoryGB) && isSet(r.precision); });
+      var base = rows.filter(function (r) { return r.role === "baseline"; })[0];
+      var best = rows.filter(function (r) { return r.role === "headline"; })[0];
+      var s = B.settings;
+      var required = [B.hardware, B.baselineDefinition, s.resolution, s.frames, s.batchSize, s.steps, s.includesModelLoading, s.includesPrePostProcessing];
+      if (!base || !best || required.some(function (v) { return !isSet(v); })) {
+        console.info("[benchmark] Section hidden: fill in hardware, baseline definition, required settings and the baseline/headline rows in data.js.");
+        return;
+      }
+      bench = { rows: rows, base: base, best: best,
+        speedup: base.latencySec / best.latencySec,
+        memCut: (1 - best.memoryGB / base.memoryGB) * 100 };
+    })();
+
+    if (bench) {
+      var m = document.getElementById("metrics");
+      [[bench.speedup.toFixed(1), "×", "faster than the baseline"],
+       [Math.round(bench.memCut), "%", "less peak GPU memory"]].forEach(function (x) {
+        m.appendChild(h("div", { class: "metric" }, [
+          h("div", { class: "v" }, [x[0], h("small", { text: x[1] })]),
+          h("div", { class: "l", text: x[2] + " (" + bench.best.name + " vs " + bench.base.name + ")" })]));
+      });
+      var t = document.getElementById("bench-table");
+      t.appendChild(h("thead", null, [h("tr", null, ["Configuration", "Precision", "Inference time", "Peak GPU memory"].map(function (c) { return h("th", { scope: "col", text: c }); }))]));
+      var tb = h("tbody");
+      bench.rows.forEach(function (r) {
+        tb.appendChild(h("tr", { class: r.role === "headline" ? "headline" : null }, [
+          h("td", { text: r.name }), h("td", { text: r.precision }),
+          h("td", { text: Number(r.latencySec).toFixed(1) + " s" }), h("td", { text: Number(r.memoryGB).toFixed(1) + " GB" })]));
+      });
+      t.appendChild(tb);
+      var s = B.settings, yn = function (v) { return v ? "Included" : "Excluded"; };
+      var items = [["Hardware", B.hardware], ["Baseline", B.baselineDefinition], ["Output resolution", s.resolution],
+        ["Frames", s.frames], ["Duration", isSet(s.durationSec) ? s.durationSec + " s" : null], ["Batch size", s.batchSize],
+        ["Inference steps", s.steps], ["Software", s.runtime], ["Model loading", yn(s.includesModelLoading)],
+        ["Pre- and post-processing", yn(s.includesPrePostProcessing)], ["Measurement", s.runs]];
+      var dl = document.getElementById("settings");
+      items.forEach(function (it) { if (isSet(it[1])) dl.appendChild(h("div", null, [h("dt", { text: it[0] }), h("dd", { text: String(it[1]) })])); });
+      document.getElementById("performance").hidden = false;
+    } else { hideSection("performance"); }
+
+    /* ---------- Capabilities ---------- */
+    var caps = document.getElementById("caps");
+    D.capabilities.forEach(function (c) {
+      var card = h("div", { class: "cap" });
+      if (isSet(c.video)) {
+        var f = h("div", { class: "frame" }); card.appendChild(f);
+        var v = makeVideo(f, c.video, c.poster, true); v.setAttribute("aria-label", c.title + " example"); watch(v);
+      } else if (bench) {
+        card.appendChild(h("div", { class: "cap-panel" }, [
+          h("div", { class: "big", text: bench.speedup.toFixed(1) + "×" }), h("div", { class: "big-label", text: "faster" }),
+          h("div", { class: "big", text: Math.round(bench.memCut) + "%" }), h("div", { class: "big-label", text: "less GPU memory" })]));
+      } else {
+        card.appendChild(h("div", { class: "cap-panel", "aria-hidden": "true" }, [
+          h("div", { class: "step", text: "Original model" }), h("div", { class: "bar" }),
+          h("div", { class: "step", text: "Distilled" }), h("div", { class: "bar" }),
+          h("div", { class: "step", text: "Quantized" })]));
+      }
+      card.appendChild(h("h3", { text: c.title }));
+      card.appendChild(h("p", { text: c.text }));
+      caps.appendChild(card);
+    });
+
+    /* ---------- Demo showcase ---------- */
+    var demos = (D.demos || []).filter(function (d) { return isSet(d.video); });
+    if (!demos.length) { hideSection("demo"); }
+    else {
+      var cats = []; demos.forEach(function (d) { if (cats.indexOf(d.category) < 0) cats.push(d.category); });
+      var tabsEl = document.getElementById("tabs"), clipsEl = document.getElementById("clips");
+      var stage = document.getElementById("demo-frame");
+      stage.style.setProperty("--ar", D.demoAspect || "3 / 4");
+      var soundOn = false, current = null, curVideo = null;
+
+      var soundBtn = h("button", { class: "frame-ctl sound-btn", type: "button" });
+      function syncSound() {
+        soundBtn.textContent = soundOn ? "Sound off" : "Sound on";
+        soundBtn.setAttribute("aria-pressed", String(soundOn));
+        soundBtn.hidden = !(current && current.hasAudio);
+      }
+      soundBtn.addEventListener("click", function () {
+        soundOn = !soundOn; if (curVideo) { curVideo.muted = !soundOn; if (soundOn) curVideo.play().catch(function () {}); } syncSound();
+      });
+
+      function showClip(d) {
+        current = d;
+        stage.innerHTML = "";
+        curVideo = makeVideo(stage, d.video, d.poster, false);
+        curVideo.setAttribute("aria-label", d.category + ": " + d.title);
+        curVideo.muted = !(soundOn && d.hasAudio);
+        curVideo.preload = "auto";
+        stage.appendChild(soundBtn);
+        playPauseButton(stage, curVideo);
+        syncSound();
+        watch(curVideo);
+        clipsEl.querySelectorAll(".clip").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.id === d.id)); });
+      }
+      function selectCat(cat, focus) {
+        tabsEl.querySelectorAll(".tab").forEach(function (t) {
+          var on = t.dataset.cat === cat;
+          t.setAttribute("aria-selected", String(on)); t.tabIndex = on ? 0 : -1;
+          if (on && focus) t.focus();
+        });
+        var list = demos.filter(function (d) { return d.category === cat; });
+        clipsEl.innerHTML = "";
+        if (list.length > 1) list.forEach(function (d, i) {
+          var b = h("button", { class: "clip", type: "button", "data-id": d.id, "aria-pressed": "false", text: "Clip " + (i + 1) });
+          b.addEventListener("click", function () { showClip(d); });
+          clipsEl.appendChild(b);
+        });
+        showClip(list[0]);
+      }
+      cats.forEach(function (c) {
+        var t = h("button", { class: "tab", role: "tab", type: "button", "data-cat": c, "aria-controls": "demo-frame", text: c });
+        t.addEventListener("click", function () { selectCat(c); });
+        t.addEventListener("keydown", function (e) {
+          var i = cats.indexOf(c), n = null;
+          if (e.key === "ArrowRight" || e.key === "ArrowDown") n = cats[(i + 1) % cats.length];
+          if (e.key === "ArrowLeft" || e.key === "ArrowUp") n = cats[(i - 1 + cats.length) % cats.length];
+          if (e.key === "Home") n = cats[0];
+          if (e.key === "End") n = cats[cats.length - 1];
+          if (n) { e.preventDefault(); selectCat(n, true); }
+        });
+        tabsEl.appendChild(t);
+      });
+      stage.setAttribute("role", "tabpanel");
+      selectCat(cats[0]);
+    }
+
+    /* ---------- Applications, collaboration, team ---------- */
+    var apps = document.getElementById("apps");
+    D.applications.forEach(function (a) { apps.appendChild(h("div", null, [h("h3", { text: a.title }), h("p", { text: a.text })])); });
+
+    var partners = document.getElementById("partners");
+    D.collaboration.partners.forEach(function (p, i) {
+      if (i > 0) partners.appendChild(h("div", { class: "times", "aria-hidden": "true", text: "×" }));
+      partners.appendChild(h("div", { class: "partner" }, [
+        isSet(p.logo) ? h("img", { src: p.logo, alt: p.name }) : h("div", { class: "name", text: p.name }),
+        h("div", { class: "full", text: p.full })]));
+    });
+
+    var tl = document.getElementById("team-list");
+    D.team.forEach(function (p) {
+      var meta = [p.title, p.affiliation].filter(isSet).join(", ");
+      tl.appendChild(h("li", null, [h("div", { class: "n", text: p.name }), meta ? h("div", { class: "m", text: meta }) : null]));
+    });
+    if (isSet(D.contact.email)) {
+      var c = document.getElementById("contact");
+      c.appendChild(document.createTextNode("Contact the team: "));
+      c.appendChild(h("a", { href: "mailto:" + D.contact.email, text: D.contact.email }));
+      c.hidden = false;
+    }
+  })();
+  </script>
+</body>
+</html>

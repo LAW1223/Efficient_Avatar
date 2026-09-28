@@ -1,0 +1,7 @@
+# Raw / oversized source files: keep out of the repo
+*.mov
+*.mkv
+*-raw.mp4
+_*.html
+.DS_Store
+Thumbs.db
