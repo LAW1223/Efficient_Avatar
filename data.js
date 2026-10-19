@@ -142,7 +142,7 @@ window.SITE_DATA = {
   // affiliation: null hides the line. Confirm every affiliation before publishing.
   team: [
     { name: "Harry Yang", title: "Professor", affiliation: "HKUST" },
-    { name: "Bing Li", title: "Professor", affiliation: "Jilin University" },
+    { name: "Bing Li", title: "Professor", affiliation: "KAUST" },
     { name: "Yaofu Liu", title: null, affiliation: "HKUST" },
     { name: "Jiajun Zha", title: null, affiliation: "HKUST" },
     { name: "Yexin Liu", title: null, affiliation: "HKUST" },
